@@ -1,0 +1,176 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
+import sys
+import urllib
+import os
+
+PY2K = False
+
+try:
+    from http.server import SimpleHTTPRequestHandler, HTTPServer
+    import html
+    import io
+
+    from urllib.parse import quote, unquote
+
+except ImportError:
+    PY2K = True
+    from SimpleHTTPServer import SimpleHTTPRequestHandler
+    from BaseHTTPServer   import HTTPServer
+
+    import cgi as html
+
+    try:
+        from cStringIO import StringIO
+    except ImportError:
+        from StringIO  import StringIO
+
+    from urllib import quote, unquote
+
+STYLESHEET = '''
+::-moz-selection {
+  background: #d02e54;
+  color: #fff;
+}
+     
+::selection {
+  background: #d02e54;
+  color: #fff;
+}
+
+body {
+  background: #222;
+  color: #efefef;
+  font-size: 12px;
+  font-family: Helvetica, arial, sans-serif, serif;
+}
+
+h1 {
+  font-size: 1.6em;
+  color: #d02e54;
+  text-shadow: 1px 1px 2px #111;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 650px;
+  border: 1px solid #181818;
+}
+
+ul li {
+  display: block;
+  line-height: 18px;
+  border: 1px solid #333;
+  border-bottom: 1px solid #222;
+}
+
+ul li:nth-child(odd) {
+  background: #282828;
+}
+
+a {
+  display: block;
+  text-decoration: none;
+  padding: 0 0 0 5px;
+  text-shadow: 1px 1px 2px #111;
+}
+
+a:link, a:active, a:visited {
+  color: #efefef;
+}
+
+a:hover {
+  color: #d02e54;
+}
+
+'''
+
+class HTTPRequestHandler(SimpleHTTPRequestHandler):
+
+    def list_directory(self, path):
+        try:
+            list = os.listdir(path)
+        except os.error:
+            self.send_error(404, 'Directory Not found')
+            return None
+
+        list.sort(key=lambda a: a.lower())
+        displaypath = html.escape(unquote(self.path))
+
+        r = []
+        r.append('<!DOCTYPE html>')
+        r.append('<html>\n<head>')
+        r.append('<title>Directory listing for %s</title>\n' % displaypath)
+        r.append('<style>')
+        r.append(STYLESHEET)
+        r.append('</style>')
+        r.append('</head>')
+        r.append('<body>\n<h1>Directory listing for %s</h1>\n' % displaypath)
+        r.append('<div class="separator"></div>\n<ul>\n')
+
+        for name in list:
+
+            fullname = os.path.join(path, name)
+            displayname = linkname = name
+            classname = 'file'
+
+            if os.path.isdir(fullname):
+                classname = 'folder'
+                displayname = name + '/'
+                linkname = name + '/'
+
+            if os.path.islink(fullname):
+                displayname = name + '@'
+
+            r.append('<li class="%s"><a href="%s">%s</a>\n'
+                    % (classname, quote(linkname), html.escape(displayname)))
+
+        r.append('</ul>\n<div class="separator"></div>\n</body>\n</html>\n')
+        enc = sys.getfilesystemencoding()
+        contents = ''.join(r)
+        length = 0
+
+        if not PY2K:
+            contents = contents.encode(enc)
+            f = io.BytesIO()
+            f.write(contents)
+            length = len(contents)
+        else:
+            f = StringIO()
+            f.write(contents)
+            length = f.tell()
+
+        f.seek(0)
+
+        self.send_response(200)
+        self.send_header("Content-type", "text/html; charset=%s" % enc)
+        self.send_header("Content-Length", str(length))
+        self.end_headers()
+        return f
+
+def webshare(HandlerClass = HTTPRequestHandler, ServerClass = HTTPServer, protocol="HTTP/1.0"):
+    if sys.argv[1:]:
+        port = int(sys.argv[1])
+    else:
+        port = 8080
+
+    server_address = ('', port)
+
+    HandlerClass.protocol_version = protocol
+    httpd = ServerClass(server_address, HandlerClass)
+
+    sa = httpd.socket.getsockname()
+    print('Serving HTTP on %s port %s ...' % (sa[0], sa[1]))
+
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print('\nKeyboard interrupt received, exiting.')
+        httpd.server_close()
+        sys.exit(0)
+
+if __name__ == '__main__':
+    webshare()
