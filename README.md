@@ -13,4 +13,4 @@ The stylesheet is hardcoded in the file, but can easily be altered for personal 
 Screenshot:
 ----------
 
-![Screenshot](raw.github.com/Paaskehare/WebShare/screenshot.png)
+![Screenshot](https://raw.github.com/Paaskehare/WebShare/master/screenshot.png)
