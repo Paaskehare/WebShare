@@ -5,6 +5,8 @@ import sys
 import urllib
 import os
 
+STYLESHEET_PATH = os.path.join(os.path.expanduser('~'), '.config', 'webshare.css')
+
 PY2K = False
 
 try:
@@ -87,6 +89,10 @@ a:hover {
 }
 
 '''
+
+if os.path.exists(STYLESHEET_PATH):
+    with open(STYLESHEET_PATH) as f:
+        STYLESHEET = f.read()
 
 class HTTPRequestHandler(SimpleHTTPRequestHandler):
 
