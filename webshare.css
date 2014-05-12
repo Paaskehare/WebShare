@@ -1,0 +1,56 @@
+::-moz-selection {
+  background: #d02e54;
+  color: #fff;
+}
+     
+::selection {
+  background: #d02e54;
+  color: #fff;
+}
+
+body {
+  background: #222;
+  color: #efefef;
+  font-size: 12px;
+  font-family: Helvetica, arial, sans-serif, serif;
+}
+
+h1 {
+  font-size: 1.6em;
+  color: #d02e54;
+  text-shadow: 1px 1px 2px #111;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 650px;
+  border: 1px solid #181818;
+}
+
+ul li {
+  display: block;
+  line-height: 18px;
+  border: 1px solid #333;
+  border-bottom: 1px solid #222;
+}
+
+ul li:nth-child(odd) {
+  background: #282828;
+}
+
+a {
+  display: block;
+  text-decoration: none;
+  padding: 0 0 0 5px;
+  text-shadow: 1px 1px 2px #111;
+}
+
+a:link, a:active, a:visited {
+  color: #efefef;
+}
+
+a:hover {
+  color: #d02e54;
+}
